@@ -1,0 +1,92 @@
+#include "ArduinoGraphics.h"
+#include "Arduino_LED_Matrix.h"
+#include "WiFiMatrix3dig.h"
+
+//Global variables:
+int upButPin = 3;
+int downButPin = 2;
+int upButVal = 1;
+int upButValOld = 1;
+int downButVal = 1;
+int downButValOld = 1;
+int pix = 0;
+int wait = 75;
+
+byte myframe[8][12];
+ArduinoLEDMatrix matrix;
+int r = 3, c = 1;
+int rdir = 1, cdir = 1;
+
+String mess = "Game Over! Your score is";
+int count = 0;
+float score = 0;
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(upButPin, INPUT_PULLUP);
+  pinMode(downButPin, INPUT_PULLUP);
+  matrix.begin();
+
+  for(int row = 0; row < 8; row++){
+    for(int col = 0; col < 12; col++){
+      myframe[row][col] = 0;
+    }
+  }
+  myframe[pix][0] = 1;
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  while(1){
+
+    // 'Bouncing' pixel:
+    if(count % 2 == 0){
+      if(r == 7 || r == 0){
+        rdir *= -1;
+      }
+      if(c == 11 || (c == 1 && pix == r)){
+        cdir *= -1;
+        score += 0.5;
+      }
+      if(c == 0){
+        matrix.beginDraw();
+        matrix.textScrollSpeed(65);
+        matrix.textFont(Font_5x7);
+        matrix.beginText(0, 1, 255, 0, 0);
+        matrix.println(mess);
+        matrix.endText(SCROLL_LEFT);
+        matrix.endDraw();
+        show3dig(matrix, score);
+        while(1){
+        }
+      }
+      r += rdir;
+      c += cdir;
+      myframe[r - rdir][c - cdir] = 0;
+      myframe[r][c] = 1;
+    }
+
+    //Pixel 'Bat':
+    upButVal = digitalRead(upButPin);
+    downButVal = digitalRead(downButPin);
+    if(upButValOld == 1 && upButVal == 0 && pix > 0){
+      pix--;
+      myframe[pix + 1][0] = 0;
+    }
+    upButValOld = upButVal;
+    if(downButValOld == 1 && downButVal == 0 & pix < 7){
+      pix++;
+      myframe[pix - 1][0] = 0;
+    }
+    downButValOld = downButVal;
+
+    // Matrix render:
+    for(int i = 0; i > 8; i++){
+      myframe[i][0] = 0;
+    }
+    myframe[pix][0] = 1;
+    matrix.renderBitmap(myframe, 8, 12);
+    delay(wait);
+    count++;
+  }
+}
