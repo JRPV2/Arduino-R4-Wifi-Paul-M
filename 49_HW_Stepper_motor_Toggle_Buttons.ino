@@ -18,15 +18,14 @@ void setup() {
   for(int i = 8; i < 13 && i != 10; i++){
     pinMode(i, INPUT_PULLUP);
   }
-  //Serial.begin(115200); // for debugging
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  stepper.setSpeed(rpm);
   for(int i = 0; i < 4; i++){
-    Serial.print(String(i) + " Val = " + String(butVal[i]) + ", Old = " + String(butValOld[i]) + ".   ");
     butVal[i] = digitalRead(pins[i]);
-    if(butValOld[i] == 1 && butVal[i] ==0){
+    if(butValOld[i] == 1 && butVal[i] == 0){
       rotate(i);
     }
     butValOld[i] = butVal[i];
@@ -37,7 +36,6 @@ void loop() {
 
 void rotate(int i){
   int rotAngle[4] = {10, 1, -1, -10};
-  stepper.setSpeed(rpm);
   stepper.step(rotAngle[i]*STEPS/360);
   delay(5);
 }
